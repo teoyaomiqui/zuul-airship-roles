@@ -1,0 +1,8 @@
+- hosts: all
+  roles:
+    - role: libvirt-pool
+      become: yes
+      vars:
+        libvirt_pool:
+          path: /var/lib/my-pool
+          name: airship

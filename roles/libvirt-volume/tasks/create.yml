@@ -1,0 +1,49 @@
+- name: Get Scheme
+  set_fact:
+    image_scheme: "{{ libvirt_volume.image | urlsplit('scheme') }}"
+
+- name: Get Scheme
+  set_fact:
+    image_dest: "{{ libvirt_image_cache_path }}/{{ libvirt_volume.image | basename }}"
+
+- name: Ensure cache directories exist
+  file:
+    path: "{{ libvirt_image_cache_path }}"
+    state: directory
+
+- name: Ensure remote images are downloaded
+  get_url:
+    url: "{{ libvirt_volume.image }}"
+    dest: "{{ image_dest }}"
+    checksum: "{{ libvirt_volume.checksum | default(omit) }}"
+  when: "image_scheme in libvirt_remote_scheme_list and libvirt_volume.image is defined"
+
+- name: Ensure local images are copied
+  copy:
+    src: "{{ libvirt_volume.image }}"
+    dest: "{{ image_dest }}"
+  when: "image_scheme not in libvirt_remote_scheme_list and libvirt_volume.image is defined"
+
+- name: "Create volume"
+  command: >-
+    virsh vol-create-as "{{ libvirt_volume.pool }}" --name "{{ libvirt_volume.name }}" --capacity "{{ libvirt_volume.size }}" --format qcow2
+  register: libvirt_create_volume
+  failed_when:
+    - "'Failed to create vol' not in libvirt_create_volume.stderr"
+    - "libvirt_create_volume.rc != 0"
+## TODO develop better changed_when conditions
+  changed_when:
+    - "libvirt_create_volume == 0"
+
+- name: "Upload volume from downloaded image"
+  command: >-
+    virsh vol-upload --pool "{{ libvirt_volume.pool }}" --vol "{{ libvirt_volume.name }}" --file "{{ image_dest }}"
+  when: 
+    - "libvirt_volume.image is defined"
+    - "libvirt_create_volume.rc == 0"
+
+- name: "Resize volume after uploading from image"
+  command: >-
+    virsh vol-resize --vol "{{ libvirt_volume.name }}" --pool "{{ libvirt_volume.pool }}" --capacity "{{ libvirt_volume.size }}"
+  when: 
+    - "libvirt_create_volume.rc == 0"

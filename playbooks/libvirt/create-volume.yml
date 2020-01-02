@@ -1,0 +1,11 @@
+- hosts: all
+  roles:
+    - role: libvirt-volume
+      become: yes
+      vars:
+        volume_action: create
+        libvirt_volume:
+          name: vm-1-root-volume
+          image: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+          size: 13G
+          pool: airship

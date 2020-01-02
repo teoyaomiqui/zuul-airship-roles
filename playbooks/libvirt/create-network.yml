@@ -1,0 +1,18 @@
+- hosts: all
+  roles:
+    - role: libvirt-network
+      vars:
+        network_action: create
+    - role: libvirt-network
+      vars:
+        network_action: rebuild
+        libvirt_network:
+          name: oob-net
+          spec:
+            bridge:
+              name: oob-net
+              stp: 'on'
+              delay: '0'
+            ip:
+              address: "10.23.22.1"
+              netmask: "255.255.255.0"

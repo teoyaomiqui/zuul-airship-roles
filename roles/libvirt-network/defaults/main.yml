@@ -1,0 +1,42 @@
+libvirt_network:
+  name: provision-network
+  spec:
+    forward:
+      mode: nat
+      nat:
+        port:
+          - start: 1024
+            end: 65535
+    bridge:
+      name: "prov-net-br"
+      stp: 'on'
+      delay: '0'
+    ip:
+      address: "172.22.0.1"
+      netmask: "255.255.255.0"
+# libvirt_network:
+#     name: "{{ bm_net_name }}"
+#     persistent: true
+#     autostart: true
+#     spec:
+#       forward:
+#         mode: nat
+#         nat:
+#           port:
+#             - start: 1024
+#               end: 65535
+#       bridge:
+#         name: "{{ bm_net_name }}"
+#         stp: 'on'
+#         delay: '0'
+#       domain:
+#         name: 'tests.baremetal.net'
+#         localOnly: 'yes'
+#       dns:
+#         - forwarder:
+#             domain: 'apps.tests.baremetal.net'
+#             addr: '127.0.0.1'
+#         - forwarder:
+#             domain: 'services.tests.baremetal.net'
+#             addr: '127.0.0.1'
+#       ip: "{{ bm_net_0_ip_cfg }}"
